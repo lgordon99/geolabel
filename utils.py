@@ -7,17 +7,41 @@ import yaml
 # functions
 def get_project_dir():
     '''get path to the project directory'''
-    with open('code/config.yaml', 'r') as config_file:
+    with open('config.yaml', 'r') as config_file:
         config = yaml.safe_load(config_file)
 
     return config['project_dir']
 
 def get_site():
     '''get path to the site being used'''
-    with open('code/config.yaml', 'r') as config_file:
+    with open('config.yaml', 'r') as config_file:
         config = yaml.safe_load(config_file)
 
     return config['site']
+
+def get_site_dir():
+    with open('config.yaml', 'r') as config_file:
+        config = yaml.safe_load(config_file)
+
+    return f'{config['project_dir']}/{config['site']}'
+
+def get_sender_email():
+    with open('config.yaml', 'r') as config_file:
+        config = yaml.safe_load(config_file)
+
+    return config['sender_email']
+
+def get_sender_password():
+    with open('config.yaml', 'r') as config_file:
+        config = yaml.safe_load(config_file)
+
+    return config['sender_password']
+
+def get_receiver_email():
+    with open('config.yaml', 'r') as config_file:
+        config = yaml.safe_load(config_file)
+
+    return config['receiver_email']
 
 def str_to_bool(string):
     '''convert a string input to a Boolean variable'''
@@ -27,7 +51,7 @@ def str_to_bool(string):
     return False
 
 def get_constants():
-    return np.load(f'{get_project_dir()}/{get_site()}/data/constants.npy')
+    return np.load(f'{get_site_dir()}/data/constants.npy')
 
 def get_thermal_interval():
     return int(get_constants()[0][1])
