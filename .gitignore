@@ -1,1 +1,4 @@
 send-receive-emails.config
+config.yaml
+scratch.py
+__pycache__
