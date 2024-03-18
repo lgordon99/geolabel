@@ -1,4 +1,4 @@
-let batch = 0;
+let batch = 1;
 let batch_identifiers = [];
 let current_index = 0;
 let current_modality = 'thermal';
