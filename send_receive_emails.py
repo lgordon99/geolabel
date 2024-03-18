@@ -5,6 +5,7 @@ import imaplib
 import numpy as np
 import os
 import pandas as pd
+import utils
 from datetime import datetime
 from email import encoders, message_from_bytes, policy
 from email.mime.multipart import MIMEMultipart
@@ -14,13 +15,10 @@ from smtplib import SMTP_SSL
 from ssl import create_default_context
 
 class SendReceiveEmail:
-    def __init__(self, folder, batch_number):
-        with open('code/send-receive-emails.config') as config:
-            credentials = {line.strip().split('|')[0]: line.strip().split('|')[1] for line in config.readlines()}
-    
-        self.sender_email = credentials.get('sender_email')
-        self.sender_password = credentials.get('sender_password')
-        self.receiver_email = credentials.get('receiver_email')
+    def __init__(self, folder, batch_number):    
+        self.sender_email = utils.get_sender_email()
+        self.sender_password = utils.get_sender_password()
+        self.receiver_email = utils.get_receiver_email()
         self.attachment_path = f'{folder}/data/batch-{batch_number}-shapefile.zip'
         self.batch_number = batch_number
         self.batch_labels = {}
