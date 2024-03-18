@@ -6,9 +6,11 @@ import numpy as np
 import os
 import random
 import shutil
+import time
 import torch
 import torch.nn as nn
 import utils
+from get_batch_images import GetBatchImages
 from send_receive_emails import SendReceiveEmail
 from shapely.geometry import Polygon
 from torchvision.models import vgg16
@@ -380,13 +382,25 @@ class CNN:
 
             # get batch labels
             if labels is None: # if none or some labels are provided
-                self.make_shapefile(queried_identifiers, batch_number) # generate shapefile to be emailed
-                id_label_dict = SendReceiveEmail(folder=f'{self.project_dir}/{self.site}', batch_number=batch_number).batch_labels # the user provides labels for the queried images            
+                # self.make_shapefile(queried_identifiers, batch_number) # generate shapefile to be emailed
+                # id_label_dict = SendReceiveEmail(folder=f'{self.project_dir}/{self.site}', batch_number=batch_number).batch_labels # the user provides labels for the queried images            
+
+                GetBatchImages(batch=batch_number, batch_identifiers=queried_identifiers)
+                user_labeled = False
+
+                while not user_labeled:
+                    path = f'{self.project_dir}/{self.site}/batch-{batch_number}-labeled-identifiers.npy'
+
+                    if os.path.exists(path):
+                        time.sleep(1)
+                        user_labeled = True
+                        id_label_dict = dict(np.load(path))
+                
                 print(f'id label dict = {id_label_dict}')
                 queried_labeled_identifiers = np.array([[identifier, id_label_dict[identifier]] for identifier in queried_identifiers]) # turn the dict to array and ensure labels are in the right order
                 queried_labels = queried_labeled_identifiers.T[1]
                 labeled_identifiers = np.array(list(labeled_identifiers) + list(queried_labeled_identifiers))
-                os.remove(f'{self.project_dir}/{self.site}/data/batch-{batch_number}-shapefile.zip')
+                # os.remove(f'{self.project_dir}/{self.site}/data/batch-{batch_number}-shapefile.zip')
                 np.save(labeled_identifiers_path, labeled_identifiers)
                 
                 print(f'Queried labeled identifiers =\n{queried_labeled_identifiers}')
