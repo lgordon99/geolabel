@@ -74,8 +74,7 @@ for trial in trials:
             train_indices = downsample_empty_train_images(labels, train_indices, middens_empty_ratio_training=1) # downsample empty images in the training set
 
     elif args.train: # only training
-        # train_indices = list(range(len(identifiers))) # all the images are for training
-        train_indices = list(np.load(f'{project_dir}/{site}/data/labeled-indices.npy')) # indices for labeled images
+        train_indices = list(range(len(identifiers))) # all the images are for training
         test_indices = None # no images are for testing
         inference_indices = None # no images are for inference
     
