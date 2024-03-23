@@ -1,8 +1,9 @@
 # imports
 import numpy as np
 import os
+import random
 import utils
-from flask import Flask, jsonify, render_template
+from flask import Flask, jsonify, render_template, request
 
 app = Flask('geoLABEL')
 
@@ -10,22 +11,30 @@ app = Flask('geoLABEL')
 def render_index_page():
     return render_template('index.html')
 
-@app.route('/check_batch_exists/<int:batch>')
-def check_batch_exists(batch):
-    print(f'Batch {batch}')
+@app.route('/check_image_exists', methods=['POST'])
+def check_image_exists():
+    batch, batch_identifiers = request.json
+    print(f'Batch {batch}: {batch_identifiers}')
     batch_path = f'static/images/batch-{batch}-images'
-    batch_exists = os.path.exists(batch_path) and len(os.listdir(batch_path)) == 40
-    batch_identifiers = []
+    batch_exists = os.path.exists(batch_path)
 
     if batch_exists:
-        batch_identifiers = [int(file.split('-')[1]) for file in os.listdir(batch_path) if file.endswith('-thermal-in.png')]
-    print(batch_identifiers)
-    return jsonify({'batch_path_exists': batch_exists, 'batch_identifiers': batch_identifiers})
+        identifier_folder_names = os.listdir(batch_path)
 
-@app.route('/save_batch_labels/<int:batch>/<identifiers>/<labels>')
-def save_batch_labels(batch, identifiers, labels):
-    labeled_identifiers = list(map(list, zip(list(map(int, identifiers.split(','))), list(map(int, labels.split(','))))))
-    print(labeled_identifiers)
+        if len(identifier_folder_names) > len(batch_identifiers):
+            new_batch_identifiers = [int(identifier_folder_name) for identifier_folder_name in identifier_folder_names if int(identifier_folder_name) not in batch_identifiers and len(os.listdir(f'{batch_path}/{identifier_folder_name}')) == 4]
+            print(new_batch_identifiers)
+            if len(new_batch_identifiers) > 0:
+                next_identifier = random.choice(new_batch_identifiers)
+                print(next_identifier)
+                return jsonify({'image_exists': True, 'next_identifier': next_identifier})
+    
+    return jsonify({'image_exists': False})
+
+@app.route('/save_batch_labels', methods=['POST'])
+def save_batch_labels():
+    batch, batch_identifiers, batch_labels = request.json
+    labeled_identifiers = list(map(list, zip(batch_identifiers, batch_labels)))
     np.save(f'{utils.get_site_dir()}/batch-{batch}-labeled-identifiers', labeled_identifiers)
     print(np.load(f'{utils.get_site_dir()}/batch-{batch}-labeled-identifiers.npy'))
     return ''
