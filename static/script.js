@@ -4,9 +4,9 @@ let current_index = 0;
 let current_modality = 'thermal';
 let current_zoom = 'in';
 let batch_labels = [];
-let intervalID = setInterval(() => checkBatchExists(batch), 5000); // poll the server every 5 seconds
+let intervalID = setInterval(() => checkImageExists(), 5000); // poll the server every 5 seconds
+const batchSize = 10;
 const spans = document.getElementsByTagName('span');
-
 
 function adjustButtonSize() {
     const imgDim = document.getElementsByTagName('img')[0].offsetWidth;
@@ -61,13 +61,16 @@ function setButtonVisibility(value) {
     }
 }
 
-function checkBatchExists() {
-    fetch(`/check_batch_exists/${batch}`)
+function checkImageExists() {
+    fetch('/check_image_exists', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify([batch, batch_identifiers])})
         .then(response => response.json())
         .then(data => {
-            if (data.batch_path_exists) {
-                batch_identifiers = data.batch_identifiers;
-                document.getElementById('batch message').innerText = `Batch ${batch}: Image ${current_index+1}/${batch_identifiers.length}, ID = ${batch_identifiers[current_index]}`;
+            if (data.image_exists) {
+                batch_identifiers.push(data.next_identifier);
+                document.getElementById('batch message').innerText = `Batch ${batch}: Image ${current_index+1}/${batchSize}, ID = ${batch_identifiers[current_index]}`;
                 document.getElementsByTagName('img')[0].style.visibility = 'visible';
                 showImage();
                 adjustButtonSize();
@@ -104,7 +107,7 @@ function setZoom(zoom) {
 }
 
 function showImage() {
-    document.getElementsByTagName('img')[0].src = `static/images/batch-${batch}-images/img-${batch_identifiers[current_index]}-${current_modality}-${current_zoom}.png`;
+    document.getElementsByTagName('img')[0].src = `static/images/batch-${batch}-images/${batch_identifiers[current_index]}/${current_modality}-${current_zoom}.png`;
     document.getElementById(current_modality).style.backgroundColor = 'green';
     document.getElementById(getOtherModality()).style.backgroundColor = 'gray';
     document.getElementById(current_zoom).style.backgroundColor = 'green';
@@ -114,28 +117,16 @@ function showImage() {
 function next() {
     current_index += 1;
     
-    if (current_index < batch_identifiers.length) { // next image
+    if (current_index < batchSize) { // next image
         current_modality = 'thermal';
         current_zoom = 'in';
-        showImage();
-        document.getElementById('batch message').innerText = `Batch ${batch}: Image ${current_index+1}/${batch_identifiers.length}, ID = ${batch_identifiers[current_index]}`;    
+        intervalID = setInterval(() => checkImageExists(), 1000); // poll the server every 1 second
     } else { // next batch
-        batch_identifiers_string = '';
-        batch_labels_string = '';
+        fetch('/save_batch_labels', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify([batch, batch_identifiers, batch_labels])});
 
-        for (let i = 0; i < batch_identifiers.length; i++) {
-            batch_identifiers_string += `${batch_identifiers[i]}`;
-            batch_labels_string += `${batch_labels[i]}`;
-
-            if (i < batch_identifiers.length - 1) {
-                batch_identifiers_string += ',';
-                batch_labels_string += ',';
-            }
-        }
-        
-        console.log(batch_identifiers_string);
-        console.log(batch_labels_string);
-        fetch(`/save_batch_labels/${batch}/${batch_identifiers_string}/${batch_labels_string}`);
         batch += 1;
         batch_identifiers = [];
         current_index = 0;
@@ -143,7 +134,7 @@ function next() {
         document.getElementById('batch message').innerText = `Waiting for batch ${batch}...`
         setButtonVisibility('hidden');
         document.getElementsByTagName('img')[0].style.visibility = 'hidden';
-        intervalID = setInterval(() => checkBatchExists(batch), 5000); // poll the server every 5 seconds
+        intervalID = setInterval(() => checkImageExists(), 5000); // poll the server every 5 seconds
     }
 }
 
