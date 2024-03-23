@@ -6,9 +6,6 @@ import random
 import utils
 from random import sample
 
-# project_dir = utils.get_project_dir()
-# site = utils.get_site()
-
 class GetBatchImages:
     def __init__(self, batch, batch_identifiers):
         self.site_dir = utils.get_site_dir()
@@ -16,9 +13,9 @@ class GetBatchImages:
         self.identifiers = np.load(f'{self.site_dir}/data/identifiers.npy')
         self.batch = batch
 
-        os.makedirs(f'{self.images_dir}/batch-{batch}-images', exist_ok=True)
-
         for identifier in batch_identifiers:
+            os.makedirs(f'{self.images_dir}/batch-{batch}-images/{identifier}', exist_ok=True)
+
             for modality in ['thermal', 'rgb']:
                 self.plot_image_from_id(identifier, modality)
                 self.plot_zoomed_out_image_from_id(identifier, modality)
@@ -33,7 +30,7 @@ class GetBatchImages:
             image.set_cmap('inferno')
         # plt.colorbar()
         plt.axis('off') # remove axes  
-        plt.savefig(f'{self.images_dir}/batch-{self.batch}-images/img-{identifier}-{modality}-in.png', bbox_inches='tight', pad_inches=0)
+        plt.savefig(f'{self.images_dir}/batch-{self.batch}-images/{identifier}/{modality}-in.png', bbox_inches='tight', pad_inches=0)
         plt.close() # close the image to save memory
 
     def plot_zoomed_out_image_from_id(self, identifier, modality):
@@ -63,5 +60,5 @@ class GetBatchImages:
 
         # plt.colorbar()
         plt.axis('off') # remove axes
-        plt.savefig(f'{self.images_dir}/batch-{self.batch}-images/img-{identifier}-{modality}-out.png', bbox_inches='tight', pad_inches=0)
+        plt.savefig(f'{self.images_dir}/batch-{self.batch}-images/{identifier}/{modality}-out.png', bbox_inches='tight', pad_inches=0)
         plt.close() # close the image to save memory
