@@ -45,6 +45,7 @@ class CNN:
         self.results = [] # [accuracy, precision, recall, f1, (fraction_middens_found)]
         self.starting_models = starting_models
         self.save_models = save_models
+        self.batch_number = 0
         self.THERMAL_INTERVAL = int(constants[0][1])
         self.THERMAL_STRIDE = int(constants[1][1])
         self.THERMAL_LEFT = float(constants[2][1])
@@ -232,7 +233,7 @@ class CNN:
 
         return x, y
     
-    def make_shapefile(self, identifiers, batch_number):
+    def make_shapefile(self, identifiers):
         empty_list = len(identifiers) * [''] # placeholders for labels
         centers_in_meters = []
 
@@ -247,8 +248,8 @@ class CNN:
         gdf['label'] = empty_list
         if os.path.exists(f'{self.project_dir}/{self.site}/data/shapefile/'): shutil.rmtree(f'{self.project_dir}/{self.site}/data/shapefile/')
         os.mkdir(f'{self.project_dir}/{self.site}/data/shapefile/')
-        gdf.to_file(f'{self.project_dir}/{self.site}/data/shapefile/batch-{batch_number}-shapefile.shp')
-        shutil.make_archive(f'{self.project_dir}/{self.site}/data/batch-{batch_number}-shapefile', 'zip', f'{self.project_dir}/{self.site}/data/shapefile')
+        gdf.to_file(f'{self.project_dir}/{self.site}/data/shapefile/batch-{self.batch_number}-shapefile.shp')
+        shutil.make_archive(f'{self.project_dir}/{self.site}/data/batch-{self.batch_number}-shapefile', 'zip', f'{self.project_dir}/{self.site}/data/shapefile')
 
     def query_indices(self, query, models, images, max_pixel_vals, unlabeled_indices, batch_size, weights): # selects indices for querying for the user
         if query == 'r': # random
@@ -332,14 +333,14 @@ class CNN:
     
     def active_train(self, models, images, labels, identifiers, max_pixel_vals, test_loader, batch_size, labeling_budget, query):
         print(f'Query = {query}')
-        batch_number = 0
+        # batch_number = 0
         unlabeled_indices = np.arange(len(images)) # each image in the unlabeled pool gets an index
         labeled_identifiers_path = f'{self.project_dir}/{self.site}/data/labeled-ids.npy'
 
         if os.path.exists(labeled_identifiers_path): # if some labels are provided
             labeled_identifiers = np.load(f'{self.project_dir}/{self.site}/data/labeled-ids.npy') # get labeled identifiers
             print(f'Labeled identifiers =\n{labeled_identifiers}')
-            batch_number = int(len(labeled_identifiers)/10)
+            self.batch_number = int(len(labeled_identifiers)/10)
             labeled_indices = list(np.where(np.isin(identifiers, labeled_identifiers.T[0]))[0]) # get indices corresponding to labeled identifiers
             unlabeled_indices = np.delete(unlabeled_indices, np.where(np.isin(unlabeled_indices, labeled_indices))[0]) # set the rest of the indices as unlabeled
             total_middens = np.sum(labeled_identifiers.T[1]) # total number of middens in the training pool
@@ -373,7 +374,7 @@ class CNN:
         # active learning loop
         while len(labeled_indices) < labeling_budget: # while more labels can still be provided
             print(f'Labels left = {labeling_budget - len(labeled_indices)}')
-            batch_number += 1
+            self.batch_number += 1
             queried_indices = self.query_indices(query, models, images, max_pixel_vals, unlabeled_indices, batch_size, weights) # select images to query
             queried_identifiers = identifiers[queried_indices]
             labeled_indices += queried_indices # add the queried indices to the list of used indices
@@ -382,14 +383,14 @@ class CNN:
 
             # get batch labels
             if labels is None: # if none or some labels are provided
-                # self.make_shapefile(queried_identifiers, batch_number) # generate shapefile to be emailed
-                # id_label_dict = SendReceiveEmail(folder=f'{self.project_dir}/{self.site}', batch_number=batch_number).batch_labels # the user provides labels for the queried images            
+                # self.make_shapefile(queried_identifiers, self.batch_number) # generate shapefile to be emailed
+                # id_label_dict = SendReceiveEmail(folder=f'{self.project_dir}/{self.site}', batch_number=self.batch_number).batch_labels # the user provides labels for the queried images            
 
-                GetBatchImages(batch=batch_number, batch_identifiers=queried_identifiers)
+                GetBatchImages(batch=self.batch_number, batch_identifiers=queried_identifiers)
                 user_labeled = False
 
                 while not user_labeled:
-                    path = f'{self.project_dir}/{self.site}/batch-{batch_number}-labeled-identifiers.npy'
+                    path = f'{self.project_dir}/{self.site}/batch-{self.batch_number}-labeled-identifiers.npy'
 
                     if os.path.exists(path):
                         time.sleep(1)
@@ -400,7 +401,7 @@ class CNN:
                 queried_labeled_identifiers = np.array([[identifier, id_label_dict[identifier]] for identifier in queried_identifiers]) # turn the dict to array and ensure labels are in the right order
                 queried_labels = queried_labeled_identifiers.T[1]
                 labeled_identifiers = np.array(list(labeled_identifiers) + list(queried_labeled_identifiers))
-                # os.remove(f'{self.project_dir}/{self.site}/data/batch-{batch_number}-shapefile.zip')
+                # os.remove(f'{self.project_dir}/{self.site}/data/batch-{self.batch_number}-shapefile.zip')
                 np.save(labeled_identifiers_path, labeled_identifiers)
                 
                 print(f'Queried labeled identifiers =\n{queried_labeled_identifiers}')
