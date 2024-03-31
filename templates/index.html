@@ -9,22 +9,30 @@
 
     <body onload="initiate()">
         <h1>GeoLABEL</h1>
-        <h2 id="batch message">Waiting for batch 1...</h2>
-        <div id="image-with-settings">
-            <div id="modality-buttons">
-                <button class="setting-button modality-button" id="thermal" onclick="setModality('thermal'); showImage()"><span>Thermal</span></button>
-                <button class="setting-button modality-button" id="rgb" onclick="setModality('rgb'); showImage()"><span>RGB</span></button>
+        <h2><span class="acronym">Geo</span>referenced <span class="acronym">L</span>abeling with <span class="acronym">A</span>ctive Learning for <span class="acronym">B</span>iodiversity and <span class="acronym">E</span>cological <span class="acronym">L</span>andscapes</h2>
+        <div id="starting-options">
+            <p class="starting-options">Type code and press Enter to start labeling.</p>
+            <input class="starting-options" type="text" id="code">
+            <p class="starting-options" id="result"></p>
+            <button class="starting-options" id="demo" onclick="activateDemo()">Demo</button>
+        </div>
+        <div id="labeling-content"></div>
+            <h2 id="batch-message">Waiting for batch 1...</h2>
+            <div id="image-with-settings">
+                <div id="modality-buttons">
+                    <button class="setting-button modality-button" id="thermal" onclick="setModality('thermal'); showImage()"><span class="modality-span">Thermal</span></button>
+                    <button class="setting-button modality-button" id="rgb" onclick="setModality('rgb'); showImage()"><span class="modality-span">RGB</span></button>
+                </div>
+                <img alt="candidate">
+                <div id="zoom-buttons">
+                    <button class="setting-button zoom-button" id="in" onclick="setZoom('in'); showImage()">+</button>
+                    <button class="setting-button zoom-button" id="out" onclick="setZoom('out'); showImage()">-</button>
+                </div>
             </div>
-            <img alt="candidate">
-            <div id="zoom-buttons">
-                <button class="setting-button zoom-button" id="in" onclick="setZoom('in'); showImage()">+</button>
-                <button class="setting-button zoom-button" id="out" onclick="setZoom('out'); showImage()">-</button>
+            <div id="label-buttons">
+                <button class="label-button" id="midden" onclick="middenLabel()">Midden</button>
+                <button class="label-button" id="empty" onclick="emptyLabel()">Not Midden</button>
             </div>
         </div>
-        <div id="label-buttons">
-            <button class="label-button" id="midden" onclick="middenLabel()">Midden</button>
-            <button class="label-button" id="empty" onclick="emptyLabel()">Not Midden</button>
-        </div>
-        
     </body>
 </html>
