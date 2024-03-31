@@ -58,7 +58,6 @@ def save_batch_labels():
 @app.route('/stop-cnn')
 def stop_cnn():
     global process
-    # process.terminate()
     os.killpg(os.getpgid(process.pid), signal.SIGTERM)
     process.wait()
 
