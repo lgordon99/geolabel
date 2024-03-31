@@ -58,13 +58,13 @@ function setBatchMessage() {
 function getStartingBatchNumber() {
     fetch('/get-starting-batch-number')
     .then(response => response.json())
-    .then(data => batch = data.batch_number)
-    .then(setBatchMessage());
+    .then(data => {
+        batch = data.batch_number;
+        setBatchMessage();
+    });
 }
 
 function updateBatch() {
-    console.log(`batch number in update batch: ${batch}`);
-    console.log(`batch identifiers in update batch: ${batchIdentifiers}`);
     fetch('/update-batch', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
