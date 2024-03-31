@@ -1,5 +1,6 @@
 __pycache__
 static/images
+static/demo-images
 send-receive-emails.config
 config.yaml
 scratch.py
