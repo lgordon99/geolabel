@@ -2,8 +2,30 @@ body {
     font-family: livvic;
 }
 
-h1, h2 {
+h1, h2, form {
     text-align: center;
+}
+
+.acronym {
+    color: green;
+}
+
+#starting-options {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.starting-options {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#demo {
+    text-align: center;
+    background-color: gray;
+    width: auto;
+    height: auto;
 }
 
 #image-with-settings {
@@ -14,20 +36,18 @@ h1, h2 {
 
 img {
     display: block;
-    /* margin-bottom: 3vh; */
     visibility: hidden;
     width: 70vh;
 }
 
-button {
-    text-align: center;
+#batch-message {
     visibility: hidden;
-    background-color: gray;
 }
 
 #modality-buttons, #zoom-buttons, #label-buttons {
     display: flex;
     justify-content: center;
+    visibility: hidden;
 }
 
 #modality-buttons, #zoom-buttons {
@@ -56,6 +76,10 @@ button {
     position: relative;
     height: 3vmax;
     border: 0;
+}
+
+.label-button:active {
+    background-color: darkgray;
 }
 
 #midden {
